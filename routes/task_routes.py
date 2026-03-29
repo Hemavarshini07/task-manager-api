@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify
-from app import db
-from models import Task
+from models import db, Task
 import config
 
 task_bp = Blueprint('tasks', __name__, url_prefix='/api')
+
+@task_bp.route('/')
+def health_check():
+    return jsonify({'message': 'Task API is running'}), 200
 
 @task_bp.route('/tasks', methods=['POST'])
 def create_task():
@@ -17,7 +20,7 @@ def create_task():
         return jsonify({'error': 'Title is required'}), 400
 
     if status not in config.VALID_STATUSES:
-        return jsonify({'error': "Status must be 'pending' or 'completed'"}), 400
+        return jsonify({'error': 'Invalid status: must be pending or completed'}), 400
 
     new_task = Task(title=title.strip(), description=description, status=status)
     db.session.add(new_task)
@@ -55,7 +58,7 @@ def update_task(id):
         return jsonify({'error': 'Status is required'}), 400
 
     if status not in config.VALID_STATUSES:
-        return jsonify({'error': "Status must be 'pending' or 'completed'"}), 400
+        return jsonify({'error': 'Invalid status: must be pending or completed'}), 400
 
     task.status = status
     db.session.commit()
